@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp, ROLE_DESCRIPTIONS } from '../../context/AppContext';
 import { Role } from '../../types';
-import { RotateCcw, AlertTriangle, UserCheck, LogOut, Shield } from 'lucide-react';
+import { RotateCcw, AlertTriangle, UserCheck, Shield, ChevronRight } from 'lucide-react';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 export const Navbar: React.FC = () => {
   const {
@@ -15,8 +16,9 @@ export const Navbar: React.FC = () => {
     setShowEntryPortal,
   } = useApp();
 
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+
   const openDuplicates = duplicateCandidates.filter((c) => c.status === 'PENDING_REVIEW').length;
-  const reviewRequiredSubs = submissions.filter((s) => s.status === 'REVIEW_REQUIRED').length;
 
   const roles: Role[] = [
     'INSTITUTION_SUBMITTER',
@@ -46,92 +48,111 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 text-white shadow-sm">
-      {/* Persistent GovTech Synthetic Disclaimer Banner */}
-      <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-1 text-center text-xs font-mono tracking-wide text-amber-200 flex items-center justify-center gap-2">
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-        <span>DEMO ENVIRONMENT · SYNTHETIC DATA · MOCK APAAR VERIFIER</span>
-        <span className="hidden md:inline text-amber-400/60">|</span>
-        <span className="hidden md:inline text-slate-300">SIH Prototype: No live government API connection</span>
-      </div>
-
-      {/* Top Bar Contract: Zone 1 (Brand) — Zone 2 (Breadcrumbs) — Zone 3 (Role & Actions) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-6">
-        {/* Zone 1: Brand Wordmark */}
-        <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setActiveNav('overview')}>
-          <img
-            src="/logo.png"
-            alt="IDVERA - Validate · Reconcile · Verify"
-            className="h-8 sm:h-9 w-auto object-contain rounded"
-          />
+    <>
+      <header className="sticky top-0 z-30 bg-[#0B0F17] border-b border-slate-800/80 text-white shadow-xs">
+        {/* Persistent GovTech Synthetic Disclaimer Banner */}
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1 text-center text-[11px] font-mono tracking-wider text-amber-200/90 flex items-center justify-center gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>PROTOTYPE ENVIRONMENT · SYNTHETIC DEMONSTRATION DATA · MOCK VERIFIER</span>
+          <span className="hidden md:inline text-amber-400/40">|</span>
+          <span className="hidden md:inline text-slate-400">SIH26263: No live government identity API connection</span>
         </div>
 
-        {/* Zone 2: Contextual Navigation Breadcrumb */}
-        <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 whitespace-nowrap overflow-hidden">
-          <span>Portal</span>
-          <span className="text-slate-600">/</span>
-          <span className="font-medium text-slate-200">{formatNavTitle(activeNav)}</span>
-          {openDuplicates > 0 && (
-            <span className="ml-2 px-1.5 py-0.5 rounded text-[11px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40">
-              {openDuplicates} Open Candidates
-            </span>
-          )}
-        </div>
+        {/* Top Bar Contract */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between gap-4">
+          {/* Zone 1: Brand Wordmark */}
+          <div
+            className="flex items-center gap-2.5 shrink-0 cursor-pointer group"
+            onClick={() => setActiveNav('overview')}
+            title="IDVERA Dashboard Home"
+          >
+            <img
+              src="/logo.png"
+              alt="IDVERA"
+              className="h-7 w-auto object-contain rounded transition-transform group-hover:scale-[1.02]"
+            />
+            <div className="hidden sm:flex flex-col border-l border-slate-800 pl-2.5">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-semibold leading-none">
+                IDVERA
+              </span>
+              <span className="text-[9px] text-slate-500 font-mono leading-tight mt-0.5">
+                AICTE APH Gateway
+              </span>
+            </div>
+          </div>
 
-        {/* Zone 3: Demo Role Switcher & Action Controls */}
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Role selector dropdown */}
-          <div className="flex flex-col items-end">
+          {/* Zone 2: Contextual Navigation Breadcrumb */}
+          <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap overflow-hidden">
+            <span className="text-slate-500">Portal</span>
+            <ChevronRight className="w-3 h-3 text-slate-600" />
+            <span className="font-semibold text-slate-200 tracking-tight">{formatNavTitle(activeNav)}</span>
+            {openDuplicates > 0 && (
+              <span className="ml-2 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                {openDuplicates} Open Candidates
+              </span>
+            )}
+          </div>
+
+          {/* Zone 3: Demo Role Switcher & Action Controls */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Simulated Role selector */}
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase font-mono text-slate-400 hidden xl:inline">Role:</span>
+              <span className="text-[10px] uppercase font-mono text-slate-400 hidden lg:inline">
+                Role:
+              </span>
               <div className="relative">
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as Role)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded border border-slate-700 px-2.5 py-1.5 pr-7 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer appearance-none"
-                  aria-label="Demo Role Switcher"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium rounded border border-slate-700/80 px-2.5 py-1 pr-6 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer appearance-none"
+                  aria-label="Simulated Role Switcher"
                 >
                   {roles.map((r) => (
-                    <option key={r} value={r} className="bg-slate-800 text-white py-1">
+                    <option key={r} value={r} className="bg-slate-900 text-white">
                       {ROLE_DESCRIPTIONS[r].title}
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                  <UserCheck className="w-3.5 h-3.5" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-400">
+                  <UserCheck className="w-3 h-3" />
                 </div>
               </div>
             </div>
-            <span className="text-[9px] text-slate-400 tracking-tight hidden sm:inline">
-              Demo role simulation — not production security
-            </span>
+
+            {/* Reset State Action */}
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              title="Reset Demonstration Seed State"
+              className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition-colors whitespace-nowrap"
+            >
+              <RotateCcw className="w-3 h-3 text-slate-400" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+
+            {/* Public Portal Switcher */}
+            <button
+              onClick={() => setShowEntryPortal(true)}
+              title="Return to Institutional Entry Portal"
+              className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono font-medium bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 hover:text-white border border-blue-700/60 transition-colors whitespace-nowrap"
+            >
+              <Shield className="w-3 h-3 text-blue-400" />
+              <span className="hidden sm:inline">Sign-in Portal</span>
+            </button>
           </div>
-
-          {/* Demo Reset Shortcut */}
-          <button
-            onClick={() => {
-              if (confirm('Reset synthetic dataset to clean seed state? This restores all 220+ records.')) {
-                resetDemoData();
-              }
-            }}
-            title="Reset Synthetic Demo State"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors whitespace-nowrap"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Reset</span>
-          </button>
-
-          {/* Institutional Portal Entry Screen Shortcut */}
-          <button
-            onClick={() => setShowEntryPortal(true)}
-            title="Return to Institutional Entry Portal"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-blue-950/60 hover:bg-blue-900 text-blue-300 hover:text-white border border-blue-700/60 transition-colors whitespace-nowrap"
-          >
-            <Shield className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden md:inline">Sign-in Portal</span>
-          </button>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Confirmation Dialog for Demo Reset */}
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={resetDemoData}
+        title="Reset Synthetic Demonstration State?"
+        description="This will restore all 220+ synthetic student records, 6 submission batches, 12 statutory rules, and audit logs to their clean seed state. Any custom mock queries or batch filings will be reinitialized."
+        confirmLabel="Reset State"
+        cancelLabel="Cancel"
+        tone="warning"
+      />
+    </>
   );
 };

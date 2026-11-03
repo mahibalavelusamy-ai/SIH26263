@@ -1,14 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { PageHeader } from '../components/ui/PageHeader';
+import { MetricCard } from '../components/ui/MetricCard';
+import { StatusIndicator } from '../components/ui/StatusIndicator';
+import { FilterBar } from '../components/ui/FilterBar';
 import {
-  BarChart3,
   Download,
-  Filter,
   AlertTriangle,
   CheckCircle2,
   AlertOctagon,
   TrendingUp,
   FileSpreadsheet,
+  Layers,
+  FileWarning,
 } from 'lucide-react';
 
 export const AicteMonitoringView: React.FC = () => {
@@ -241,141 +245,152 @@ export const AicteMonitoringView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header and Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Programme-Level Intake Monitoring</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Demonstration validation based on configurable rules: Programme-level seat allocation reconciliation comparing configured synthetic regular intake limits against reported active student rosters.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExportBreachNotices}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-medium transition-colors shadow-xs"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export Breach Notices (CSV)
-          </button>
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-medium transition-colors shadow-xs"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export Intake Report (CSV)
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'IDVERA' },
+          { label: 'Regulatory Oversight' },
+          { label: 'Intake Monitoring' },
+        ]}
+        title="Programme-Level Intake Monitoring"
+        subtitle="Programme-level seat allocation reconciliation comparing configured regular intake limits against reported active student rosters."
+        badge={
+          <span className="font-mono text-[11px] text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-medium">
+            AICTE STATUTORY LEDGER
+          </span>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportBreachNotices}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded text-xs font-medium transition-colors shadow-xs"
+            >
+              <FileWarning className="w-3.5 h-3.5 text-rose-600" />
+              Export Breach Notices
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0F172A] hover:bg-slate-800 text-white rounded text-xs font-medium transition-colors shadow-xs"
+            >
+              <Download className="w-3.5 h-3.5 text-blue-400" />
+              Export Intake Ledger
+            </button>
+          </div>
+        }
+      />
 
       {/* Executive KPI Summary Ribbon */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wide block">Approved Regular</span>
-          <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">{totalApprovedRegular}</div>
-          <span className="text-[10px] text-slate-500">Configured synthetic limit</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wide block">Counted Regular</span>
-          <div className="text-lg font-bold font-mono text-blue-700 mt-0.5">{totalCountedRegular}</div>
-          <span className="text-[10px] text-slate-500">Active non-supernumerary</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wide block">Net Regular Excess</span>
-          <div className={`text-lg font-bold font-mono mt-0.5 ${totalExcessSeats > 0 ? 'text-red-700' : 'text-teal-700'}`}>
-            {totalExcessSeats > 0 ? `+${totalExcessSeats} Seats` : '0 (Compliant)'}
-          </div>
-          <span className="text-[10px] text-slate-500">Northstar CS (+8)</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wide block">Supernumerary Seats</span>
-          <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">{totalSupernumerary}</div>
-          <span className="text-[10px] text-slate-500">TFW, EWS, Lateral</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wide block">Compliance Rate</span>
-          <div className="text-lg font-bold font-mono text-teal-700 mt-0.5">{complianceRate}%</div>
-          <span className="text-[10px] text-slate-500">{compliantCount} of {matrixData.length} programmes</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wide block">Programme Exceptions</span>
-          <div className="text-lg font-bold font-mono text-amber-700 mt-0.5">{totalOpenExceptions} Open</div>
-          <span className="text-[10px] text-slate-500">Under TPER review</span>
-        </div>
+        <MetricCard
+          label="Approved Regular"
+          value={totalApprovedRegular}
+          subValue="AICTE approved ceiling"
+        />
+        <MetricCard
+          label="Counted Regular"
+          value={totalCountedRegular}
+          subValue="Active non-supernumerary"
+          tone="indigo"
+        />
+        <MetricCard
+          label="Regular Excess"
+          value={totalExcessSeats > 0 ? `+${totalExcessSeats}` : '0'}
+          subValue={totalExcessSeats > 0 ? 'Breach detected' : 'Fully compliant'}
+          trend={{
+            value: totalExcessSeats > 0 ? 'Breach' : 'Compliant',
+            isNegative: totalExcessSeats > 0,
+            isPositive: totalExcessSeats === 0,
+          }}
+          tone={totalExcessSeats > 0 ? 'rose' : 'teal'}
+        />
+        <MetricCard
+          label="Supernumerary"
+          value={totalSupernumerary}
+          subValue="TFW, EWS, Lateral seats"
+        />
+        <MetricCard
+          label="Compliance Rate"
+          value={`${complianceRate}%`}
+          subValue={`${compliantCount}/${matrixData.length} compliant`}
+          trend={{
+            value: `${complianceRate}%`,
+            isPositive: complianceRate >= 80,
+          }}
+          tone="teal"
+        />
+        <MetricCard
+          label="Open Exceptions"
+          value={totalOpenExceptions}
+          subValue="Pending TPER review"
+          tone="amber"
+        />
       </div>
 
       {/* Regulatory Dual Accounting Notice */}
-      <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-lg text-xs space-y-1">
-        <span className="font-bold text-blue-900 block">Dual Quota Accounting Principle (Assumed rules pending AICTE confirmation):</span>
-        <p className="text-slate-700 leading-relaxed text-[11px]">
-          Demonstration validation based on configurable rules: Regular intake limits and supernumerary quotas (TFW, EWS, Lateral Entry) are non-fungible and counted independently. If a programme exceeds its regular quota, the aggregate discrepancy is flagged as a programme-level finding for regulatory review; individual students are not arbitrarily declared invalid.
-        </p>
+      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs flex items-start gap-3">
+        <div className="w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+        <div className="space-y-0.5">
+          <span className="font-semibold text-slate-900 block font-mono text-[11px] uppercase tracking-wide">
+            Dual Quota Accounting Principle (Statutory Separation)
+          </span>
+          <p className="text-slate-600 leading-relaxed text-[11px]">
+            Regular approved intake and supernumerary quotas (Tuition Fee Waiver, Economically Weaker Section, Lateral Entry) are non-fungible and counted independently. If a programme exceeds its regular quota, the aggregate discrepancy is logged as an institutional finding; individual students are not arbitrarily declared invalid.
+          </p>
+        </div>
       </div>
 
       {/* Filter Ribbon */}
-      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="font-medium text-slate-700">Filters:</span>
-
-          <select
-            value={selectedAcademicYear}
-            onChange={(e) => setSelectedAcademicYear(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded px-2 py-1 font-mono text-slate-800"
-          >
-            <option value="2026-27">AY 2026-27</option>
-            <option value="2025-26">AY 2025-26</option>
-          </select>
-
-          <select
-            value={filterInstitution}
-            onChange={(e) => setFilterInstitution(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-800 max-w-[180px] truncate"
-          >
-            <option value="ALL">All Institutions</option>
-            {institutions.map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.code} - {i.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filterProgramme}
-            onChange={(e) => setFilterProgramme(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-800"
-          >
-            <option value="ALL">All Programmes</option>
-            {programmes.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.code}
-              </option>
-            ))}
-          </select>
-
-          <label className="flex items-center gap-1.5 ml-2 cursor-pointer text-slate-700">
+      <FilterBar
+        filters={[
+          {
+            id: 'ay',
+            label: 'Academic Year',
+            value: selectedAcademicYear,
+            onChange: setSelectedAcademicYear,
+            options: [
+              { label: 'AY 2026-27', value: '2026-27' },
+              { label: 'AY 2025-26', value: '2025-26' },
+            ],
+          },
+          {
+            id: 'institution',
+            label: 'Institution',
+            value: filterInstitution,
+            onChange: setFilterInstitution,
+            width: '180px',
+            options: [
+              { label: 'All Institutions', value: 'ALL' },
+              ...institutions.map((i) => ({ label: `${i.code} — ${i.name}`, value: i.id })),
+            ],
+          },
+          {
+            id: 'programme',
+            label: 'Programme',
+            value: filterProgramme,
+            onChange: setFilterProgramme,
+            options: [
+              { label: 'All Programmes', value: 'ALL' },
+              ...programmes.map((p) => ({ label: p.code, value: p.code })),
+            ],
+          },
+        ]}
+        rightAction={
+          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-700 font-medium">
             <input
               type="checkbox"
               checked={filterDiscrepancyOnly}
               onChange={(e) => setFilterDiscrepancyOnly(e.target.checked)}
-              className="rounded text-blue-600 focus:ring-blue-500"
+              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
             />
             <span>Show Discrepancies Only</span>
           </label>
-        </div>
-
-        <span className="text-xs font-mono text-slate-500">{matrixData.length} Programmes Evaluated</span>
-      </div>
+        }
+      />
 
       {/* Programme Reconciliation Table */}
       <div className="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs divide-y divide-slate-200">
-            <thead className="bg-slate-50 text-slate-500 font-mono text-[11px] uppercase border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 font-mono text-[11px] uppercase border-b border-slate-200">
               <tr>
                 <th className="py-2.5 px-3">Institution & Programme</th>
                 <th className="py-2.5 px-3 text-right">Approved Regular</th>
@@ -383,109 +398,108 @@ export const AicteMonitoringView: React.FC = () => {
                 <th className="py-2.5 px-3 text-right">Regular Variance</th>
                 <th className="py-2.5 px-3 text-right">TFW Limit / Rep</th>
                 <th className="py-2.5 px-3 text-right">Total Active</th>
-                <th className="py-2.5 px-3 text-center">Open Exceptions</th>
+                <th className="py-2.5 px-3 text-center">Exceptions</th>
                 <th className="py-2.5 px-3">Latest Filing</th>
-                <th className="py-2.5 px-3">Reconciliation Status</th>
+                <th className="py-2.5 px-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {matrixData.map((row) => {
-                const isRegularExcess = row.regularExcess;
-                const isTfwExcess = row.tfwExcess;
-                const isZero = row.status === 'ZERO_ENROLMENT';
+              {matrixData.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-xs text-slate-400 font-mono">
+                    No programmes matching the selected criteria.
+                  </td>
+                </tr>
+              ) : (
+                matrixData.map((row) => {
+                  const isRegularExcess = row.regularExcess;
+                  const isTfwExcess = row.tfwExcess;
 
-                return (
-                  <tr
-                    key={row.id}
-                    className={`hover:bg-slate-50/70 transition-colors ${
-                      isRegularExcess ? 'bg-red-50/20' : isTfwExcess ? 'bg-amber-50/20' : ''
-                    }`}
-                  >
-                    <td className="py-2.5 px-3">
-                      <div className="font-semibold text-slate-900">{row.institutionName}</div>
-                      <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1.5 mt-0.5">
-                        <span className="text-blue-700 font-bold">{row.programmeCode}</span>
-                        <span>·</span>
-                        <span>AY {row.academicYear}</span>
-                      </div>
-                    </td>
-
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-600 font-semibold">
-                      {row.approvedRegularIntake}
-                    </td>
-
-                    <td
-                      className={`py-2.5 px-3 text-right font-mono font-bold ${
-                        isRegularExcess ? 'text-red-700' : 'text-slate-900'
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        isRegularExcess ? 'bg-rose-50/20' : isTfwExcess ? 'bg-amber-50/20' : ''
                       }`}
                     >
-                      {row.countedRegular}
-                    </td>
+                      <td className="py-2.5 px-3">
+                        <div className="font-semibold text-slate-900">{row.institutionName}</div>
+                        <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1.5 mt-0.5">
+                          <span className="text-blue-700 font-semibold">{row.programmeCode}</span>
+                          <span>·</span>
+                          <span>AY {row.academicYear}</span>
+                        </div>
+                      </td>
 
-                    <td className="py-2.5 px-3 text-right font-mono">
-                      {row.regularVariance > 0 ? (
-                        <span className="font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded border border-red-200">
-                          +{row.regularVariance} Excess
-                        </span>
-                      ) : row.regularVariance === 0 ? (
-                        <span className="text-teal-700">0 (Full)</span>
-                      ) : (
-                        <span className="text-slate-500">{row.regularVariance} Seats</span>
-                      )}
-                    </td>
+                      <td className="py-2.5 px-3 text-right font-mono text-slate-600 font-medium">
+                        {row.approvedRegularIntake}
+                      </td>
 
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-700">
-                      <span>{row.tfwLimit}</span> /{' '}
-                      <span className={isTfwExcess ? 'text-amber-800 font-bold' : 'text-slate-900'}>
-                        {row.tfwCount}
-                      </span>
-                      {isTfwExcess && <span className="ml-1 text-[10px] text-amber-600 font-bold">(+Excess)</span>}
-                    </td>
+                      <td
+                        className={`py-2.5 px-3 text-right font-mono font-semibold ${
+                          isRegularExcess ? 'text-rose-700' : 'text-slate-900'
+                        }`}
+                      >
+                        {row.countedRegular}
+                      </td>
 
-                    <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900">
-                      {row.totalActive}
-                    </td>
+                      <td className="py-2.5 px-3 text-right font-mono">
+                        {row.regularVariance > 0 ? (
+                          <span className="font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                            +{row.regularVariance} Excess
+                          </span>
+                        ) : row.regularVariance === 0 ? (
+                          <span className="text-teal-700 font-medium">0 (Full)</span>
+                        ) : (
+                          <span className="text-slate-500 font-medium">{row.regularVariance}</span>
+                        )}
+                      </td>
 
-                    <td className="py-2.5 px-3 text-center">
-                      {row.openExceptions > 0 ? (
-                        <span className="font-mono text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
-                          {row.openExceptions} Open
+                      <td className="py-2.5 px-3 text-right font-mono text-slate-700">
+                        <span>{row.tfwLimit}</span> /{' '}
+                        <span className={isTfwExcess ? 'text-amber-700 font-semibold' : 'text-slate-900'}>
+                          {row.tfwCount}
                         </span>
-                      ) : (
-                        <span className="text-slate-400 font-mono">—</span>
-                      )}
-                    </td>
+                        {isTfwExcess && <span className="ml-1 text-[10px] text-amber-600 font-semibold">(+Excess)</span>}
+                      </td>
 
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">
-                      <div>{row.latestSubId}</div>
-                      <div className="text-[10px] text-slate-400">Engine {row.ruleVersion}</div>
-                    </td>
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900">
+                        {row.totalActive}
+                      </td>
 
-                    <td className="py-2.5 px-3">
-                      {row.status === 'COMPLIANT' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
-                          <CheckCircle2 className="w-3 h-3 text-teal-600" /> COMPLIANT
-                        </span>
-                      )}
-                      {row.status === 'REGULAR_EXCESS' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
-                          <AlertTriangle className="w-3 h-3 text-red-600" /> REGULAR EXCESS
-                        </span>
-                      )}
-                      {row.status === 'QUOTA_EXCESS' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
-                          <AlertTriangle className="w-3 h-3 text-amber-600" /> SUPERNUMERARY EXCESS
-                        </span>
-                      )}
-                      {row.status === 'ZERO_ENROLMENT' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                          ZERO ENROLMENT
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      <td className="py-2.5 px-3 text-center">
+                        {row.openExceptions > 0 ? (
+                          <span className="font-mono text-[10px] font-semibold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                            {row.openExceptions} Open
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-mono">—</span>
+                        )}
+                      </td>
+
+                      <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">
+                        <div>{row.latestSubId}</div>
+                        <div className="text-[10px] text-slate-400">Engine {row.ruleVersion}</div>
+                      </td>
+
+                      <td className="py-2.5 px-3">
+                        {row.status === 'COMPLIANT' && (
+                          <StatusIndicator status="COMPLIANT" label="COMPLIANT" size="sm" />
+                        )}
+                        {row.status === 'REGULAR_EXCESS' && (
+                          <StatusIndicator status="BREACH" label="REGULAR EXCESS" size="sm" />
+                        )}
+                        {row.status === 'QUOTA_EXCESS' && (
+                          <StatusIndicator status="FLAGGED" label="QUOTA EXCESS" size="sm" />
+                        )}
+                        {row.status === 'ZERO_ENROLMENT' && (
+                          <StatusIndicator status="PENDING" label="ZERO ENROLLED" size="sm" />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

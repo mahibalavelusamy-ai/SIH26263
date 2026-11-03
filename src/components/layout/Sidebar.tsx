@@ -14,9 +14,8 @@ import {
   Terminal,
   Settings,
   ChevronRight,
-  Info,
   Shield,
-  ArrowUpRight,
+  ExternalLink,
 } from 'lucide-react';
 
 interface NavItem {
@@ -83,7 +82,7 @@ export const Sidebar: React.FC = () => {
       label: 'TPER Reconciliation',
       icon: GitCompare,
       badge: openDuplicates > 0 ? openDuplicates : undefined,
-      badgeColor: 'bg-blue-900 text-blue-200 border-blue-700',
+      badgeColor: 'bg-blue-950/80 text-blue-300 border-blue-700/60',
       category: 'RECONCILIATION',
     },
     {
@@ -91,7 +90,7 @@ export const Sidebar: React.FC = () => {
       label: 'Exception Review',
       icon: AlertOctagon,
       badge: openDuplicates > 0 ? openDuplicates : undefined,
-      badgeColor: 'bg-amber-900/60 text-amber-200 border-amber-700',
+      badgeColor: 'bg-amber-950/80 text-amber-300 border-amber-700/60',
       category: 'REGULATORY',
     },
     {
@@ -99,7 +98,7 @@ export const Sidebar: React.FC = () => {
       label: 'AICTE Monitoring',
       icon: BarChart3,
       badge: intakeExcessCount > 0 ? `${intakeExcessCount} Breaches` : undefined,
-      badgeColor: 'bg-red-900/60 text-red-200 border-red-700',
+      badgeColor: 'bg-rose-950/80 text-rose-300 border-rose-700/60',
       category: 'REGULATORY',
     },
     {
@@ -110,7 +109,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'rules',
-      label: 'Rules & Configuration',
+      label: 'Rules & Engine',
       icon: Sliders,
       category: 'SYSTEM',
     },
@@ -134,7 +133,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'settings',
-      label: 'Settings / Demo Reset',
+      label: 'Settings & State',
       icon: Settings,
       category: 'SYSTEM',
     },
@@ -147,35 +146,37 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800 min-h-[calc(100vh-56px)]">
+    <aside className="w-56 lg:w-60 bg-[#0B0F17] text-slate-300 flex flex-col shrink-0 border-r border-slate-800/80 min-h-[calc(100vh-48px)]">
       {/* Current Active Role Context Pill & Portal Shortcut */}
-      <div className="p-3 border-b border-slate-800 bg-slate-950/70">
+      <div className="p-3 border-b border-slate-800/80 bg-slate-950/60">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Current Role</div>
+          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-semibold">
+            Simulated Context
+          </span>
           <button
             onClick={() => setShowEntryPortal(true)}
-            className="text-[10px] text-blue-400 hover:text-blue-300 font-mono flex items-center gap-1 hover:underline cursor-pointer"
+            className="text-[10px] text-blue-400 hover:text-blue-300 font-mono flex items-center gap-0.5 hover:underline cursor-pointer"
             title="Switch Persona / Portal Sign-In"
           >
-            <Shield className="w-3 h-3 text-blue-400" />
             <span>Portal Login</span>
+            <ExternalLink className="w-2.5 h-2.5" />
           </button>
         </div>
-        <div className="text-xs font-semibold text-white mt-1 truncate">
+        <div className="text-xs font-semibold text-white mt-1 truncate tracking-tight">
           {ROLE_DESCRIPTIONS[role].title}
         </div>
-        <div className="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">
-          {ROLE_DESCRIPTIONS[role].scope}
+        <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 font-sans">
+          {ROLE_DESCRIPTIONS[role].subtitle}
         </div>
       </div>
 
       {/* Navigation List grouped by GovTech category */}
-      <nav className="flex-1 px-2.5 py-3 space-y-4 overflow-y-auto">
+      <nav className="flex-1 px-2 py-3 space-y-3.5 overflow-y-auto">
         {categories.map((cat) => {
           const items = navItems.filter((item) => item.category === cat.key);
           return (
             <div key={cat.key}>
-              <div className="px-2.5 pb-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">
+              <div className="px-2 pb-1 text-[9px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
                 {cat.title}
               </div>
               <ul className="space-y-0.5">
@@ -186,26 +187,26 @@ export const Sidebar: React.FC = () => {
                     <li key={item.id}>
                       <button
                         onClick={() => setActiveNav(item.id)}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded text-xs font-medium transition-colors ${
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs font-medium transition-colors ${
                           isActive
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                            ? 'bg-slate-800 text-white font-semibold shadow-2xs border-l-2 border-blue-500'
+                            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                          <span className="truncate">{item.label}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
+                          <span className="truncate tracking-tight">{item.label}</span>
                         </div>
                         {item.badge ? (
                           <span
-                            className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
-                              isActive ? 'bg-white/20 text-white border-white/30' : item.badgeColor
+                            className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${
+                              isActive ? 'bg-blue-900/60 text-blue-200 border-blue-700/60' : item.badgeColor
                             }`}
                           >
                             {item.badge}
                           </span>
                         ) : isActive ? (
-                          <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
+                          <ChevronRight className="w-3 h-3 text-slate-500 shrink-0" />
                         ) : null}
                       </button>
                     </li>
@@ -218,14 +219,14 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Subtitle & Version Footer */}
-      <div className="p-3 border-t border-slate-800 text-[11px] text-slate-400 bg-slate-950/40">
-        <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-          <span>SPEC: AICTE-TPER</span>
-          <span className="text-blue-400">v1.2.0</span>
+      <div className="p-2.5 border-t border-slate-800/80 text-[10px] text-slate-400 bg-slate-950/40 font-mono">
+        <div className="flex items-center justify-between">
+          <span className="text-slate-400">SPEC: AICTE-TPER</span>
+          <span className="text-blue-400 font-semibold">v1.2.0</span>
         </div>
-        <p className="mt-1 text-[10px] text-slate-400 leading-normal">
-          Institutional Enrolment Reconciliation & Verification Prototype.
-        </p>
+        <div className="text-[9px] text-slate-400 truncate mt-0.5">
+          SIH26263 Enterprise Sandbox
+        </div>
       </div>
     </aside>
   );
