@@ -4,15 +4,16 @@ import {
   LayoutDashboard,
   Building2,
   UploadCloud,
+  Fingerprint,
   GitCompare,
-  AlertOctagon,
+  GitFork,
   BarChart3,
+  Award,
   CheckCircle2,
+  Dna,
+  ShieldCheck,
+  FileSpreadsheet,
   Sliders,
-  Layers,
-  History,
-  Terminal,
-  Settings,
   ChevronRight,
   Shield,
   ExternalLink,
@@ -24,7 +25,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: number | string;
   badgeColor?: string;
-  category: 'RECONCILIATION' | 'REGULATORY' | 'SYSTEM';
+  category: 'CORE' | 'GOVERNANCE' | 'SYSTEM';
 }
 
 export const Sidebar: React.FC = () => {
@@ -63,92 +64,96 @@ export const Sidebar: React.FC = () => {
       id: 'overview',
       label: 'Overview',
       icon: LayoutDashboard,
-      category: 'RECONCILIATION',
+      category: 'CORE',
     },
     {
-      id: 'institution',
-      label: 'Institution Portal',
+      id: 'institutions',
+      label: 'Institutions',
       icon: Building2,
-      category: 'RECONCILIATION',
+      category: 'CORE',
     },
     {
       id: 'submission',
       label: 'Submission Centre',
       icon: UploadCloud,
-      category: 'RECONCILIATION',
+      category: 'CORE',
+    },
+    {
+      id: 'identity-intelligence',
+      label: 'Identity Intelligence',
+      icon: Fingerprint,
+      category: 'CORE',
     },
     {
       id: 'tper',
       label: 'TPER Reconciliation',
       icon: GitCompare,
       badge: openDuplicates > 0 ? openDuplicates : undefined,
-      badgeColor: 'bg-blue-950/80 text-blue-300 border-blue-700/60',
-      category: 'RECONCILIATION',
+      badgeColor: 'bg-[#315EAA]/20 text-blue-300 border border-[#315EAA]/40',
+      category: 'CORE',
     },
     {
-      id: 'exception-review',
-      label: 'Exception Review',
-      icon: AlertOctagon,
-      badge: openDuplicates > 0 ? openDuplicates : undefined,
-      badgeColor: 'bg-amber-950/80 text-amber-300 border-amber-700/60',
-      category: 'REGULATORY',
+      id: 'mobility-graph',
+      label: 'Academic Mobility Graph',
+      icon: GitFork,
+      category: 'CORE',
     },
     {
-      id: 'aicte-monitoring',
-      label: 'AICTE Monitoring',
+      id: 'seat-ledger',
+      label: 'Programme-wise Seat Ledger',
       icon: BarChart3,
       badge: intakeExcessCount > 0 ? `${intakeExcessCount} Breaches` : undefined,
-      badgeColor: 'bg-rose-950/80 text-rose-300 border-rose-700/60',
-      category: 'REGULATORY',
+      badgeColor: 'bg-rose-950/80 text-rose-300 border border-rose-700/60',
+      category: 'GOVERNANCE',
+    },
+    {
+      id: 'trust-engine',
+      label: 'Academic Trust Engine',
+      icon: Award,
+      category: 'GOVERNANCE',
     },
     {
       id: 'verification',
       label: 'Verification Centre',
       icon: CheckCircle2,
-      category: 'REGULATORY',
+      category: 'GOVERNANCE',
     },
     {
-      id: 'rules',
-      label: 'Rules & Engine',
+      id: 'record-dna',
+      label: 'Record DNA',
+      icon: Dna,
+      category: 'GOVERNANCE',
+    },
+    {
+      id: 'cybershield',
+      label: 'CyberShield',
+      icon: ShieldCheck,
+      category: 'SYSTEM',
+    },
+    {
+      id: 'reports',
+      label: 'Reports',
+      icon: FileSpreadsheet,
+      category: 'SYSTEM',
+    },
+    {
+      id: 'administration',
+      label: 'Administration',
       icon: Sliders,
-      category: 'SYSTEM',
-    },
-    {
-      id: 'architecture',
-      label: 'Architecture',
-      icon: Layers,
-      category: 'SYSTEM',
-    },
-    {
-      id: 'audit-trail',
-      label: 'Audit Trail',
-      icon: History,
-      category: 'SYSTEM',
-    },
-    {
-      id: 'test-bench',
-      label: 'Test Bench',
-      icon: Terminal,
-      category: 'SYSTEM',
-    },
-    {
-      id: 'settings',
-      label: 'Settings & State',
-      icon: Settings,
       category: 'SYSTEM',
     },
   ];
 
   const categories = [
-    { key: 'RECONCILIATION', title: 'Institutional Ingestion' },
-    { key: 'REGULATORY', title: 'Regulatory Oversight' },
-    { key: 'SYSTEM', title: 'Platform Governance' },
+    { key: 'CORE', title: 'Intelligence & Operations' },
+    { key: 'GOVERNANCE', title: 'Regulatory Oversight' },
+    { key: 'SYSTEM', title: 'Platform Security & Gov' },
   ];
 
   return (
-    <aside className="w-56 lg:w-60 bg-[#0B0F17] text-slate-300 flex flex-col shrink-0 border-r border-slate-800/80 min-h-[calc(100vh-48px)]">
+    <aside className="w-60 bg-[#101C32] text-slate-300 flex flex-col shrink-0 border-r border-slate-700/60 min-h-[calc(100vh-48px)]">
       {/* Current Active Role Context Pill & Portal Shortcut */}
-      <div className="p-3 border-b border-slate-800/80 bg-slate-950/60">
+      <div className="p-3 border-b border-slate-700/60 bg-[#0B1324]">
         <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-semibold">
             Simulated Context
@@ -182,31 +187,37 @@ export const Sidebar: React.FC = () => {
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeNav === item.id;
+                  // Handle aliases e.g. 'institution' -> 'institutions', 'aicte-monitoring' -> 'seat-ledger'
+                  const isActive =
+                    activeNav === item.id ||
+                    (item.id === 'institutions' && activeNav === 'institution') ||
+                    (item.id === 'seat-ledger' && activeNav === 'aicte-monitoring') ||
+                    (item.id === 'administration' && ['rules', 'architecture', 'audit-trail', 'test-bench', 'settings'].includes(activeNav));
+
                   return (
                     <li key={item.id}>
                       <button
                         onClick={() => setActiveNav(item.id)}
                         className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs font-medium transition-colors ${
                           isActive
-                            ? 'bg-slate-800 text-white font-semibold shadow-2xs border-l-2 border-blue-500'
-                            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                            ? 'bg-slate-800/90 text-white font-semibold shadow-2xs border-l-2 border-[#315EAA]'
+                            : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#315EAA]' : 'text-slate-400'}`} />
                           <span className="truncate tracking-tight">{item.label}</span>
                         </div>
                         {item.badge ? (
                           <span
                             className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${
-                              isActive ? 'bg-blue-900/60 text-blue-200 border-blue-700/60' : item.badgeColor
+                              isActive ? 'bg-[#315EAA]/40 text-blue-100 border-[#315EAA]/80' : item.badgeColor
                             }`}
                           >
                             {item.badge}
                           </span>
                         ) : isActive ? (
-                          <ChevronRight className="w-3 h-3 text-slate-500 shrink-0" />
+                          <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
                         ) : null}
                       </button>
                     </li>
@@ -219,7 +230,7 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Subtitle & Version Footer */}
-      <div className="p-2.5 border-t border-slate-800/80 text-[10px] text-slate-400 bg-slate-950/40 font-mono">
+      <div className="p-2.5 border-t border-slate-700/60 text-[10px] text-slate-400 bg-[#0B1324] font-mono">
         <div className="flex items-center justify-between">
           <span className="text-slate-400">SPEC: AICTE-TPER</span>
           <span className="text-blue-400 font-semibold">v1.2.0</span>

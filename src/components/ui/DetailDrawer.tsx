@@ -94,3 +94,4 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({
     </div>
   );
 };
+

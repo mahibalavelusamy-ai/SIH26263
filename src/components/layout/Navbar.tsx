@@ -32,30 +32,38 @@ export const Navbar: React.FC = () => {
   const formatNavTitle = (nav: string) => {
     switch (nav) {
       case 'overview': return 'Executive Overview';
-      case 'institution': return 'Institution Portal';
+      case 'institutions':
+      case 'institution': return 'Institution Management';
       case 'submission': return 'Submission Centre';
+      case 'identity-intelligence': return 'Identity Intelligence';
       case 'tper': return 'TPER Reconciliation Engine';
-      case 'exception-review': return 'Exception Review Workspace';
-      case 'aicte-monitoring': return 'AICTE Monitoring & Intake';
+      case 'mobility-graph': return 'Academic Mobility Graph';
+      case 'seat-ledger':
+      case 'aicte-monitoring': return 'Programme-wise Seat Ledger';
+      case 'trust-engine': return 'Academic Trust Engine';
       case 'verification': return 'Verification Centre';
-      case 'rules': return 'Rules & Engine Configuration';
-      case 'architecture': return 'System Architecture & Boundaries';
-      case 'audit-trail': return 'Immutable Audit Trail';
-      case 'test-bench': return 'Prototype Test Bench';
-      case 'settings': return 'Settings & Demo Controls';
+      case 'record-dna': return 'Record DNA';
+      case 'cybershield': return 'CyberShield';
+      case 'reports': return 'Regulatory Reports';
+      case 'administration':
+      case 'rules':
+      case 'architecture':
+      case 'audit-trail':
+      case 'test-bench':
+      case 'settings': return 'Administration & Governance';
       default: return nav;
     }
   };
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-[#0B0F17] border-b border-slate-800/80 text-white shadow-xs">
+      <header className="sticky top-0 z-30 bg-[#101C32] border-b border-slate-700/60 text-white shadow-xs">
         {/* Persistent GovTech Synthetic Disclaimer Banner */}
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1 text-center text-[11px] font-mono tracking-wider text-amber-200/90 flex items-center justify-center gap-2">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <div className="bg-[#D99032]/15 border-b border-[#D99032]/30 px-4 py-1 text-center text-[11px] font-mono tracking-wider text-amber-200/90 flex items-center justify-center gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-[#D99032] shrink-0" />
           <span>PROTOTYPE ENVIRONMENT · SYNTHETIC DEMONSTRATION DATA · MOCK VERIFIER</span>
           <span className="hidden md:inline text-amber-400/40">|</span>
-          <span className="hidden md:inline text-slate-400">SIH26263: No live government identity API connection</span>
+          <span className="hidden md:inline text-slate-300">SIH26263: No live government identity API connection</span>
         </div>
 
         {/* Top Bar Contract */}
