@@ -1,0 +1,850 @@
+import React, { useState } from 'react';
+import { IDVERA_SECURITY_CONTROLS } from '../services/securityService';
+import {
+  Layers,
+  Shield,
+  Database,
+  Lock,
+  Cpu,
+  FileCheck,
+  Server,
+  ArrowRight,
+  ArrowDown,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Key,
+  Info,
+  ExternalLink,
+  Code2,
+  Eye,
+  RefreshCw,
+  GitBranch,
+  Network,
+  Activity,
+  HardDrive,
+} from 'lucide-react';
+
+interface ComponentDetail {
+  id: string;
+  name: string;
+  tier: string;
+  boundaryType: 'IMPLEMENTED' | 'SIMULATED' | 'FUTURE';
+  summary: string;
+  inputs: string[];
+  outputs: string[];
+  privacySafeguards: string[];
+  prototypeImplementation: string;
+  futureProductionGap: string;
+}
+
+const ARCHITECTURE_COMPONENTS: ComponentDetail[] = [
+  {
+    id: 'PORTALS',
+    name: 'Institutional & Regulatory Portals',
+    tier: 'Tier 1: Interaction Surface',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Responsive, role-tailored web interfaces serving AICTE Institutions (filing, column mapping, intake reconciliation), Regulatory Officers (exception adjudication, intake quotas), and Public Verifiers.',
+    inputs: ['User credentials / demo role selection', 'Institutional CSV files', 'Reviewer decisions with mandatory justifications'],
+    outputs: ['Pre-validation preview grids', 'Intake discrepancy reports', 'Verification certificates', 'Audit events'],
+    privacySafeguards: [
+      'Client-side masking of APAAR IDs (APAAR-***-9421) across all tables and drawers',
+      'No persistent student identity caching on untrusted browser devices',
+    ],
+    prototypeImplementation: 'Fully built with React 19, TypeScript, and Tailwind CSS. Responsive layouts with zero dead buttons.',
+    futureProductionGap: 'Replace demo role switcher with National Single Sign-On (Jan Parichay / MeriPehchaan OAuth 2.0).',
+  },
+  {
+    id: 'ACCESS_CONTROL',
+    name: 'Access-Control Boundary & RBAC Matrix',
+    tier: 'Tier 1: Security Gateway',
+    boundaryType: 'SIMULATED',
+    summary:
+      'Enforces granular role permissions across Submitter, Institution Reviewer, AICTE Regulatory Reviewer, Verification Officer, System Administrator, and Auditor.',
+    inputs: ['Active role selector in navigation bar', 'Action invocation context (e.g. resolveCandidate, updateRule)'],
+    outputs: ['Permission grant / denial', 'UI component read-only state', 'Unauthorized action block alerts'],
+    privacySafeguards: [
+      'Dual enforcement: UI controls are visually disabled, and action handlers internally verify permissions before mutating state',
+    ],
+    prototypeImplementation: 'Simulated demo role switcher with real internal RBAC capability matrix evaluated in AppContext.',
+    futureProductionGap: 'Production JWT bearer tokens with digitally signed institutional delegation certificates and MeitY trust tokens.',
+  },
+  {
+    id: 'SUBMISSION_SERVICE',
+    name: 'Institutional Submission Service',
+    tier: 'Tier 2: Ingestion Orchestration',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Robust RFC 4180 CSV parser supporting quoted strings, canonical template downloads, interactive ERP column mapping with Row 1 preview, pre-validation row classification, and non-destructive resubmissions.',
+    inputs: ['Canonical or ERP CSV files', 'Column mapping selections', 'Institution ID & Academic Year'],
+    outputs: ['Validated submission snapshots with immutable ID', 'Row-level ACCEPTED / FLAGGED / REJECTED outcomes', 'Error report CSVs'],
+    privacySafeguards: [
+      'Files parsed strictly in-memory within browser web sandbox',
+      'Original upload snapshots retained intact for regulatory auditability',
+    ],
+    prototypeImplementation: 'Pure client-side TypeScript CSV parser and mapper; preserves historical submissions upon resubmission.',
+    futureProductionGap: 'Signed S3/GCS multipart ingestion buckets with antivirus scanning, rate limiting, and XML/API connectors for institutional ERPs.',
+  },
+  {
+    id: 'VERSIONED_RULE_ENGINE',
+    name: 'Versioned Statutory Rules Engine (V-01 – V-12)',
+    tier: 'Tier 3: Ingestion Quality & Quotas',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Executes 12 regulatory checks: required fields (V-01), APAAR existence & 12-digit format (V-02, V-03), batch duplicates (V-04), active overlaps (V-05), age plausibility 14–70 (V-06), admission dates (V-07), quota eligibility (V-08), regular intake limits (V-09), supernumerary caps (V-10, V-11), and end dates (V-12).',
+    inputs: ['Student enrolment records', 'Approved intake quotas per programme', 'Active rule definitions (v1.2.0)'],
+    outputs: ['Validation findings with rule ID, severity, and statutory explanation', 'Row outcomes (ACCEPTED/FLAGGED/REJECTED)'],
+    privacySafeguards: [
+      'Deterministic rule evaluation with zero external network telemetry',
+      'Immutable rule version tagging on all evaluated submission batches',
+    ],
+    prototypeImplementation: 'Modular service in rulesEngine.ts. Rule configuration editor enables severity adjustments and triggers batch re-validation.',
+    futureProductionGap: 'Distributed rule execution microservice with versioned JSON-schema definitions published to a public regulatory ledger.',
+  },
+  {
+    id: 'TPER_ENGINE',
+    name: 'TPER Temporal Matching Engine (Stages A–E)',
+    tier: 'Tier 3: Cross-Institutional Reconciliation',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Reconciles student enrolments across multiple institutions using 5 privacy-preserving stages: (A) Keyed HMAC derivation, (B) Open interval evaluation, (C) Transition-aware release logic, (D) Multi-signal heuristic scoring (Name 40, DOB 35, Interval 15, Prog 10), and (E) Human adjudication queue.',
+    inputs: ['Certified active enrolment rosters from all institutions', 'Configurable high/medium similarity thresholds'],
+    outputs: ['DuplicateCandidate records with explainable matching scores', 'Timeline overlap intervals', 'Uncertain transition flags'],
+    privacySafeguards: [
+      'Never compares raw student records directly in global scope; utilizes pseudonymized HMAC tokens',
+      'Treats confirmed duplicates as administrative review findings rather than accusations of fraud',
+    ],
+    prototypeImplementation: 'Client-side deterministic HMAC simulation with Web Crypto API fallback, Dice bigram string similarity, and interval arithmetic.',
+    futureProductionGap: 'Server-side Hardware Security Modules (HSMs) for key rotation, differential privacy, and homomorphic private set intersection (PSI).',
+  },
+  {
+    id: 'DEMO_REPOSITORY',
+    name: 'Browser Demo Repository & State Store',
+    tier: 'Tier 4: Storage & Persistence',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Central reactive state store managing 224 synthetic records across 5 fictional institutions (Northstar Institute, Cedar Technical College, Riverbend University, Summit Arts College, Lakeview Institute), configured regular intake limits, historical submissions, candidate queues, and deterministic reset capabilities.',
+    inputs: ['Seed generation parameters', 'User submissions and adjudications', 'JSON snapshot imports'],
+    outputs: ['Reactive React state', 'Synchronized browser localStorage', 'Complete JSON backup archives'],
+    privacySafeguards: [
+      '100% synthetic fictitious student data; zero PII from actual students or real government portals',
+      'One-click wipe and reset restores clean state instantly',
+    ],
+    prototypeImplementation: 'React Context + localStorage synchronization with snapshot export/import utilities.',
+    futureProductionGap: 'PostgreSQL database with Row-Level Security (RLS), multi-tenant institutional partitioning, and encrypted tables at rest.',
+  },
+  {
+    id: 'AUDIT_SERVICE',
+    name: 'Immutable Audit Journal Service',
+    tier: 'Tier 4: Regulatory Accountability',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Chronological append-only ledger recording all state-changing events: batch uploads, rule version updates, human adjudication decisions with mandatory reasons, and verification requests.',
+    inputs: ['Action triggers from application modules with actor, role, previous state, new state, and reason'],
+    outputs: ['Immutable AuditEvent records', 'Filterable audit log table', 'Exportable CSV audit journal'],
+    privacySafeguards: [
+      'Masks student identifiers in audit reference notes',
+      'Append-only architecture prevents deletion or silent modification through UI controls',
+    ],
+    prototypeImplementation: 'In-memory + localStorage append-only list with CSV export.',
+    futureProductionGap: 'Cryptographically signed Write-Once-Read-Many (WORM) storage, timestamp authority certification, and RFC 3161 audit verification.',
+  },
+  {
+    id: 'MOCK_VERIFIER',
+    name: 'Authorised Mock Verifier Adapter',
+    tier: 'Tier 4: External Verification Facade',
+    boundaryType: 'IMPLEMENTED',
+    summary:
+      'Privacy-preserving query adapter evaluating institutional student reference numbers or 12-digit APAAR IDs to verify bona fide enrolment status without leaking database tables.',
+    inputs: ['Student reference ID or APAAR ID', 'Institution ID', 'Academic year', 'Optional programme code'],
+    outputs: ['Verification certificate with outcome: VERIFIED / NOT_VERIFIED / UNABLE_TO_VERIFY', 'Reason code'],
+    privacySafeguards: [
+      'Minimal response payload: returns only tri-state confirmation and reason code without revealing student rosters',
+      'Masks identifiers in certificates and query logs',
+    ],
+    prototypeImplementation: 'Synchronous adapter service validating against certified records and active candidate queues in browser state.',
+    futureProductionGap: 'Rate-limited, mTLS-authenticated REST/GraphQL API for government employers, scholarship boards, and academic lenders.',
+  },
+  {
+    id: 'JAN_PARICHAY_SSO',
+    name: 'National SSO Gateway (Jan Parichay / MeriPehchaan)',
+    tier: 'Tier 1: Enterprise Identity Gateway',
+    boundaryType: 'FUTURE',
+    summary:
+      'National Single Sign-On gateway integration providing OpenID Connect (OIDC) and SAML 2.0 authentication for institutional registrars, state council officers, and central regulators.',
+    inputs: ['Digital India auth tokens', 'Jan Parichay user profiles', 'Institutional delegation assertions'],
+    outputs: ['Digitally signed JWT bearer tokens with institutional tenancy claims'],
+    privacySafeguards: [
+      'Two-factor authentication with Aadhaar-based OTP and biometric authentication',
+      'Ephemeral session tokens with strict 15-minute inactivity timeouts',
+    ],
+    prototypeImplementation: 'Simulated via top-bar role selector with internal RBAC capability evaluation.',
+    futureProductionGap: 'Production Jan Parichay OAuth 2.0 client credentials registration and MeitY trust federation.',
+  },
+  {
+    id: 'HSM_SECURITY_MODULE',
+    name: 'Hardware Security Module (HSM) Tokenization Core',
+    tier: 'Tier 3: Cryptographic Hardware Boundary',
+    boundaryType: 'FUTURE',
+    summary:
+      'FIPS 140-3 Level 3 certified Hardware Security Module providing master HMAC key derivation, key rotation, and RFC 3161 cryptographic timestamping for audit ledger blocks.',
+    inputs: ['Raw student APAAR IDs', 'Master key derivation requests', 'Audit block hash signing payloads'],
+    outputs: ['Pseudonymized HMAC keyed identifiers', 'Hardware-signed RFC 3161 timestamps'],
+    privacySafeguards: [
+      'Non-exportable cryptographic keys contained strictly within tamper-resistant hardware boundaries',
+      'Zero plaintext exposure of raw identifiers to application memory',
+    ],
+    prototypeImplementation: 'Client-side deterministic HMAC simulation with Web Crypto API fallback.',
+    futureProductionGap: 'Cloud HSM cluster (AWS CloudHSM or Google Cloud HSM) managed by central regulatory authority.',
+  },
+  {
+    id: 'NATIONAL_APAAR_GATEWAY',
+    name: 'National APAAR / Digilocker Live Query Gateway',
+    tier: 'Tier 4: Statutory Federation Gateway',
+    boundaryType: 'FUTURE',
+    summary:
+      'Official MeitY / NDEAR production gateway executing real-time federated verification against the 12-digit Automated Permanent Academic Account Registry (APAAR) and Academic Bank of Credits (ABC).',
+    inputs: ['12-digit APAAR numbers', 'Institutional verification credentials', 'Consent tokens'],
+    outputs: ['Live certified academic standing records', 'Cryptographic Digilocker verification certificates'],
+    privacySafeguards: [
+      'Zero-knowledge proof (ZKP) queries confirming enrolment standing without downloading student transcripts',
+      'Mutual TLS (mTLS) with IP whitelisting and automated rate limiting',
+    ],
+    prototypeImplementation: 'Privacy-safe mock query adapter evaluating certified local submission records.',
+    futureProductionGap: 'Production API SLA contracts with Ministry of Education NDEAR / National Informatics Centre (NIC).',
+  },
+];
+
+export const ArchitectureView: React.FC = () => {
+  const [selectedComponentId, setSelectedComponentId] = useState<string>('TPER_ENGINE');
+  const [filterBoundary, setFilterBoundary] = useState<'ALL' | 'IMPLEMENTED' | 'SIMULATED' | 'FUTURE'>('ALL');
+
+  const activeDetail = ARCHITECTURE_COMPONENTS.find((c) => c.id === selectedComponentId) || ARCHITECTURE_COMPONENTS[0];
+
+  const implementedCount = ARCHITECTURE_COMPONENTS.filter((c) => c.boundaryType === 'IMPLEMENTED').length;
+  const simulatedCount = ARCHITECTURE_COMPONENTS.filter((c) => c.boundaryType === 'SIMULATED').length;
+  const futureCount = ARCHITECTURE_COMPONENTS.filter((c) => c.boundaryType === 'FUTURE').length;
+
+  const isDimmed = (type: 'IMPLEMENTED' | 'SIMULATED' | 'FUTURE') =>
+    filterBoundary !== 'ALL' && filterBoundary !== type;
+
+  return (
+    <div className="space-y-6">
+      {/* Header and Title */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight font-heading">
+              System Architecture & Boundary Classification
+            </h1>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-100 text-blue-800 border border-blue-200 font-semibold">
+              GovTech Blueprint
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5 font-sans">
+            Technical schematic detailing IDVERA's reconciliation pipeline, distinguishing in-memory browser code, simulated demo facades, and enterprise production roadmap interfaces.
+          </p>
+        </div>
+
+        {/* Boundary Filter Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-white p-1.5 rounded-lg border border-slate-200 shadow-2xs font-mono text-xs">
+          <button
+            onClick={() => setFilterBoundary('ALL')}
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
+              filterBoundary === 'ALL'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            All Modules ({ARCHITECTURE_COMPONENTS.length})
+          </button>
+          <button
+            onClick={() => setFilterBoundary('IMPLEMENTED')}
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1.5 ${
+              filterBoundary === 'IMPLEMENTED'
+                ? 'bg-teal-600 text-white'
+                : 'text-teal-800 hover:bg-teal-50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-teal-400" />
+            Implemented ({implementedCount})
+          </button>
+          <button
+            onClick={() => setFilterBoundary('SIMULATED')}
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1.5 ${
+              filterBoundary === 'SIMULATED'
+                ? 'bg-amber-600 text-white'
+                : 'text-amber-800 hover:bg-amber-50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            Simulated ({simulatedCount})
+          </button>
+          <button
+            onClick={() => setFilterBoundary('FUTURE')}
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1.5 ${
+              filterBoundary === 'FUTURE'
+                ? 'bg-blue-600 text-white'
+                : 'text-blue-800 hover:bg-blue-50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-blue-400" />
+            Future ({futureCount})
+          </button>
+        </div>
+      </div>
+
+      {/* Main Split Layout: Flowchart (7 cols) | Detailed Component Inspection Drawer (5 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* LEFT COLUMN: INTERACTIVE ARCHITECTURAL FLOWCHART (7 cols) */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-xs space-y-5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold text-slate-900 font-mono uppercase tracking-wide">
+                Interactive Architecture Diagram (Click Node to Inspect)
+              </span>
+              <span className="text-[11px] text-slate-400">8 Core Modules</span>
+            </div>
+
+            {/* Tier 1: Access Portals & Role Surface */}
+            <div className="space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-slate-400" />
+                <span>Tier 1: Access Portals & Role Interaction Surface</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Node 1: Portals */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('PORTALS')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'PORTALS'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">1. Portals (Inst / AICTE / Verifier)</span>
+                    <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                      Implemented
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">
+                    Filing workflows, column mapping, exception workspace, and public query adapter.
+                  </p>
+                </button>
+
+                {/* Node 2: Access Control Boundary */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('ACCESS_CONTROL')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('SIMULATED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'ACCESS_CONTROL'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-amber-500/70 bg-amber-50/20 hover:border-amber-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">2. Access-Control Boundary</span>
+                    <span className="text-[9px] font-mono text-amber-800 font-bold bg-amber-100 px-1.5 py-0.5 rounded">
+                      Simulated
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">
+                    Role switcher simulation + client RBAC matrix enforced at UI and action handler levels.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Connecting Flow Indicator */}
+            <div className="flex justify-center text-slate-400">
+              <ArrowDown className="w-4 h-4" />
+            </div>
+
+            {/* Tier 2: Submission Service */}
+            <div className="space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                <FileCheck className="w-3.5 h-3.5 text-slate-400" />
+                <span>Tier 2: Ingestion & Parsing Orchestration</span>
+              </div>
+
+              {/* Node 3: Submission Service */}
+              <button
+                type="button"
+                onClick={() => setSelectedComponentId('SUBMISSION_SERVICE')}
+                className={`w-full p-3.5 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                  selectedComponentId === 'SUBMISSION_SERVICE'
+                    ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                    : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileCheck className="w-4 h-4 text-teal-700" />
+                    <span className="text-xs font-bold text-slate-900">3. Institutional Submission Service</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                    Implemented
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-1">
+                  RFC 4180 CSV parser, canonical template builder, ERP column auto-mapping, and non-destructive resubmissions.
+                </p>
+              </button>
+            </div>
+
+            {/* Connecting Flow Indicator */}
+            <div className="flex justify-center text-slate-400">
+              <ArrowDown className="w-4 h-4" />
+            </div>
+
+            {/* Tier 3: Core Dual Processing Engines */}
+            <div className="space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                <Cpu className="w-3.5 h-3.5 text-slate-400" />
+                <span>Tier 3: Dual Rule & Temporal Reconciliation Engines</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Node 4: Versioned Rules Engine */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('VERSIONED_RULE_ENGINE')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'VERSIONED_RULE_ENGINE'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">4. Versioned Rule Engine</span>
+                    <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                      Implemented
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">
+                    Rules V-01 to V-12, version tagging (v1.2.0 $\rightarrow$ v1.3.0), and batch re-validation.
+                  </p>
+                </button>
+
+                {/* Node 5: TPER Engine */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('TPER_ENGINE')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'TPER_ENGINE'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">5. TPER Matching Core</span>
+                    <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                      Implemented
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">
+                    Stages A–E: Keyed HMAC tokens, open intervals, transition awareness, and scoring.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Connecting Flow Indicator */}
+            <div className="flex justify-center text-slate-400">
+              <ArrowDown className="w-4 h-4" />
+            </div>
+
+            {/* Tier 4: Repository, Audit & Verification Adapter */}
+            <div className="space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-slate-400" />
+                <span>Tier 4: State Repository, Audit Trail & Verifier Adapter</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Node 6: Demo Repository */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('DEMO_REPOSITORY')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'DEMO_REPOSITORY'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">6. Demo Repo</span>
+                    <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                      Implemented
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
+                    220+ records, 5 institutes, localStorage cache, reset.
+                  </p>
+                </button>
+
+                {/* Node 7: Audit Service */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('AUDIT_SERVICE')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'AUDIT_SERVICE'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">7. Audit Log</span>
+                    <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                      Implemented
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
+                    Append-only ledger, transitions, CSV export.
+                  </p>
+                </button>
+
+                {/* Node 8: Mock Verifier Adapter */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('MOCK_VERIFIER')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${isDimmed('IMPLEMENTED') ? 'opacity-30' : ''} ${
+                    selectedComponentId === 'MOCK_VERIFIER'
+                      ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-500'
+                      : 'border-teal-500/60 bg-teal-50/20 hover:border-teal-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">8. Mock Verifier</span>
+                    <span className="text-[9px] font-mono text-teal-800 font-bold bg-teal-100 px-1.5 py-0.5 rounded">
+                      Implemented
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
+                    Privacy-safe 3-state output (VERIFIED/NOT/UNABLE).
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Boundary Divider: FUTURE PRODUCTION HORIZON */}
+            <div className={`pt-4 border-t-2 border-dashed border-slate-300 space-y-2.5 ${filterBoundary === 'IMPLEMENTED' || filterBoundary === 'SIMULATED' ? 'opacity-40' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold font-mono text-slate-900">
+                  <Lock className="w-3.5 h-3.5 text-blue-600" />
+                  <span>FUTURE PRODUCTION HORIZON (Click Node to Inspect Blueprint)</span>
+                </div>
+                <span className="text-[10px] font-mono bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-semibold">
+                  Enterprise Production Target
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Future 1: Jan Parichay SSO */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('JAN_PARICHAY_SSO')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    selectedComponentId === 'JAN_PARICHAY_SSO'
+                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-1 ring-blue-500'
+                      : 'border-blue-300/80 bg-blue-50/30 hover:border-blue-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">Jan Parichay SSO</span>
+                    <span className="text-[9px] font-mono text-blue-800 font-bold bg-blue-100 px-1.5 py-0.5 rounded">
+                      Future
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
+                    National Single Sign-On (OIDC/SAML 2.0) with MeriPehchaan trust federation.
+                  </p>
+                </button>
+
+                {/* Future 2: HSM Tokenization Core */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('HSM_SECURITY_MODULE')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    selectedComponentId === 'HSM_SECURITY_MODULE'
+                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-1 ring-blue-500'
+                      : 'border-blue-300/80 bg-blue-50/30 hover:border-blue-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">HSM Key Core</span>
+                    <span className="text-[9px] font-mono text-blue-800 font-bold bg-blue-100 px-1.5 py-0.5 rounded">
+                      Future
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
+                    FIPS 140-3 Hardware Security Module for isolated HMAC derivation & RFC 3161 timestamps.
+                  </p>
+                </button>
+
+                {/* Future 3: National APAAR Gateway */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId('NATIONAL_APAAR_GATEWAY')}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    selectedComponentId === 'NATIONAL_APAAR_GATEWAY'
+                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-1 ring-blue-500'
+                      : 'border-blue-300/80 bg-blue-50/30 hover:border-blue-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">National APAAR Gateway</span>
+                    <span className="text-[9px] font-mono text-blue-800 font-bold bg-blue-100 px-1.5 py-0.5 rounded">
+                      Future
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">
+                    Live NDEAR / ABC DigiLocker federation with zero-knowledge proof queries.
+                  </p>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: DETAIL INSPECTION CARD (5 cols) */}
+        <div className="lg:col-span-5 bg-white p-5 rounded-lg border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="pb-3 border-b border-slate-100 flex items-start justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block font-bold">
+                  {activeDetail.tier}
+                </span>
+                <h2 className="text-base font-bold text-slate-900 mt-0.5">{activeDetail.name}</h2>
+              </div>
+              <span
+                className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border shrink-0 ${
+                  activeDetail.boundaryType === 'IMPLEMENTED'
+                    ? 'bg-teal-50 text-teal-800 border-teal-200'
+                    : activeDetail.boundaryType === 'SIMULATED'
+                    ? 'bg-amber-50 text-amber-800 border-amber-200'
+                    : 'bg-blue-50 text-blue-800 border-blue-200'
+                }`}
+              >
+                {activeDetail.boundaryType === 'IMPLEMENTED'
+                  ? 'Implemented in Browser'
+                  : activeDetail.boundaryType === 'SIMULATED'
+                  ? 'Simulated Boundary'
+                  : 'Future Production'}
+              </span>
+            </div>
+
+            {/* Summary */}
+            <p className="text-xs text-slate-600 leading-relaxed">{activeDetail.summary}</p>
+
+            {/* Inputs & Outputs */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-1">
+                <span className="font-bold text-slate-800 block text-[11px] font-mono">Inputs:</span>
+                <ul className="list-disc list-inside text-slate-600 text-[10px] space-y-0.5">
+                  {activeDetail.inputs.map((inp, idx) => (
+                    <li key={idx} className="leading-tight">{inp}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-1">
+                <span className="font-bold text-slate-800 block text-[11px] font-mono">Outputs:</span>
+                <ul className="list-disc list-inside text-slate-600 text-[10px] space-y-0.5">
+                  {activeDetail.outputs.map((out, idx) => (
+                    <li key={idx} className="leading-tight">{out}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Privacy Safeguards */}
+            <div className="p-3 bg-teal-50/50 rounded border border-teal-200 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 text-teal-900 font-bold text-[11px]">
+                <Shield className="w-3.5 h-3.5 text-teal-700" />
+                <span>Privacy & Data Protection Controls:</span>
+              </div>
+              <ul className="list-disc list-inside text-teal-800 text-[10px] space-y-0.5">
+                {activeDetail.privacySafeguards.map((ps, idx) => (
+                  <li key={idx} className="leading-tight">{ps}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Prototype vs Production Distinction */}
+            <div className="space-y-2 text-xs">
+              <div className="p-2.5 bg-slate-50 rounded border border-slate-200">
+                <span className="font-semibold text-slate-900 block text-[11px]">Current Browser Implementation:</span>
+                <p className="text-slate-600 text-[10px] mt-0.5 leading-relaxed">{activeDetail.prototypeImplementation}</p>
+              </div>
+
+              <div className="p-2.5 bg-blue-50/40 rounded border border-blue-200">
+                <span className="font-semibold text-blue-950 block text-[11px]">Production Transition Requirement:</span>
+                <p className="text-blue-800 text-[10px] mt-0.5 leading-relaxed">{activeDetail.futureProductionGap}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer note */}
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Component ID: {activeDetail.id}</span>
+            <span>SIH 2026 Prototype</span>
+          </div>
+        </div>
+      </div>
+
+      {/* NATIONAL-SCALE PRODUCTION ARCHITECTURE SPECIFICATIONS */}
+      <div className="bg-white rounded-lg border border-slate-200 shadow-xs p-6 space-y-6">
+        <div className="border-b border-slate-200 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <Server className="w-4 h-4 text-slate-700" />
+              National-Scale Production Architecture & Engineering Specifications
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Production requirements distinguishing current prototype capabilities from national infrastructure dependencies (MoE, AICTE, and MeitY).
+            </p>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-800 font-bold border border-blue-200">
+            Target Scale: 10M+ Annual Records
+          </span>
+        </div>
+
+        {/* 4 Core Infrastructure Pillars */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs">
+              <Network className="w-4 h-4 text-blue-600" />
+              <span>Queue Workers & Async Ingestion</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Decoupled API gateway accepts CSV uploads asynchronously (HTTP 202 Accepted). Distributed background workers (Redis + BullMQ / Celery) process 5,000-row micro-chunks with auto-scaling worker nodes.
+            </p>
+            <div className="text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-200">
+              Throughput Target: 25,000 rows/sec
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs">
+              <Database className="w-4 h-4 text-emerald-600" />
+              <span>Database & Connection Pooling</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              PostgreSQL 16 Enterprise with PgBouncer connection pooler (Transaction pooling). Multi-tenant Row-Level Security (RLS) policies scoped by <code>tenant_id</code>. Partitioned tables by academic year.
+            </p>
+            <div className="text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-200">
+              Indices: B-tree, GIN Trigram, HMAC Hash
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs">
+              <Key className="w-4 h-4 text-amber-600" />
+              <span>Hardware Security Modules (HSM)</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              FIPS 140-3 Level 3 CloudHSM / AWS KMS for zero-plaintext key derivation. HMAC pepper keys rotated on a 90-day cryptographic cycle. Salt isolated per academic year to prevent cross-year correlation.
+            </p>
+            <div className="text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-200">
+              Zero Plaintext APAAR In Storage
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs">
+              <HardDrive className="w-4 h-4 text-purple-600" />
+              <span>High Availability & Disaster Recovery</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Multi-AZ deployment across 3 availability zones with active-active failover. Continuous WAL streaming to encrypted object storage. Daily immutable snapshots retained for 7 years under statutory compliance.
+            </p>
+            <div className="text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-200">
+              RPO: &lt; 1 min | RTO: &lt; 15 mins
+            </div>
+          </div>
+        </div>
+
+        {/* Security Controls Status Matrix */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono flex items-center gap-2">
+              <Shield className="w-3.5 h-3.5 text-slate-700" />
+              Security & Privacy Controls Inventory ({IDVERA_SECURITY_CONTROLS.length} Controls Evaluated)
+            </h3>
+            <span className="text-[11px] text-slate-500 font-mono">
+              {IDVERA_SECURITY_CONTROLS.filter((c) => c.status === 'IMPLEMENTED').length} Implemented in Core Prototype
+            </span>
+          </div>
+
+          <div className="overflow-x-auto border border-slate-200 rounded-lg">
+            <table className="w-full text-left text-xs divide-y divide-slate-200">
+              <thead className="bg-slate-50 text-slate-600 font-mono text-[10px] uppercase">
+                <tr>
+                  <th className="py-2.5 px-3">Control ID</th>
+                  <th className="py-2.5 px-3">Category</th>
+                  <th className="py-2.5 px-3">Security Control Name</th>
+                  <th className="py-2.5 px-3">Current Status</th>
+                  <th className="py-2.5 px-3">Current Prototype Implementation</th>
+                  <th className="py-2.5 px-3">Production Dependency</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-[11px]">
+                {IDVERA_SECURITY_CONTROLS.map((ctrl) => (
+                  <tr key={ctrl.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-2 px-3 font-mono font-bold text-slate-900">{ctrl.id}</td>
+                    <td className="py-2 px-3 font-mono text-[10px] text-slate-500">{ctrl.category}</td>
+                    <td className="py-2 px-3 font-semibold text-slate-800">{ctrl.name}</td>
+                    <td className="py-2 px-3 whitespace-nowrap">
+                      <span
+                        className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${
+                          ctrl.status === 'IMPLEMENTED'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                            : ctrl.status === 'SIMULATED'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-blue-50 text-blue-800 border-blue-200'
+                        }`}
+                      >
+                        {ctrl.status === 'IMPLEMENTED'
+                          ? '✓ IMPLEMENTED'
+                          : ctrl.status === 'SIMULATED'
+                          ? 'SIMULATED'
+                          : 'PRODUCTION DEP'}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-slate-600 text-[10px]">{ctrl.description}</td>
+                    <td className="py-2 px-3 text-slate-500 text-[10px] font-mono">{ctrl.productionRequirement}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Honest Disclosure of Remaining Vulnerabilities & Gaps */}
+        <div className="p-4 bg-amber-50/70 rounded-lg border border-amber-200 text-xs text-amber-900 space-y-1.5">
+          <div className="flex items-center gap-2 font-bold text-amber-950">
+            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>Honest Disclosure of Prototype Security Boundaries & Remaining Vulnerabilities:</span>
+          </div>
+          <ul className="list-disc list-inside space-y-1 text-amber-900/90 pl-1 text-[11px] leading-relaxed">
+            <li>
+              <strong>Browser Storage Boundary:</strong> While least-privilege action gates and SHA-256 hash chaining prevent accidental or UI-based tampering, client-side browser memory and <code>localStorage</code> remain accessible to DevTools inspection. True tamper-resistance requires server-side WORM databases.
+            </li>
+            <li>
+              <strong>Offline Mock Verifier:</strong> The current APAAR Verification Centre operates against certified in-memory institutional submissions; no real government APAAR/DigiLocker network connection exists in this prototype.
+            </li>
+            <li>
+              <strong>Client-Side Rate Limiting:</strong> Verification throttling operates via in-memory token buckets per browser session. Production requires distributed Redis sliding-window limiters to defend against multi-IP scraping.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
