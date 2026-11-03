@@ -409,10 +409,10 @@ export const OverviewView: React.FC = () => {
 
       {/* MEANINGFUL KPI CARDS (8 Institutional Metrics) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {/* 1. Institutions */}
+        {/* 1. Total Institutions */}
         <div
-          onClick={() => setActiveNav('institution')}
-          className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors flex flex-col justify-between cursor-pointer"
+          onClick={() => setActiveNav('institutions')}
+          className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs hover:border-[#315EAA] transition-colors flex flex-col justify-between cursor-pointer"
         >
           <span className="text-[10px] font-bold font-mono text-slate-500 uppercase tracking-wider">
             Institutions
@@ -423,97 +423,83 @@ export const OverviewView: React.FC = () => {
             </span>
             <Building2 className="w-4 h-4 text-slate-400" />
           </div>
-          <span className="text-[10px] text-slate-400 mt-1">Synthetic campuses</span>
+          <span className="text-[10px] text-slate-400 mt-1 font-mono">Approved campuses</span>
         </div>
 
-        {/* 2. Submissions / Batches */}
+        {/* 2. Total Enrolment Records */}
         <div
           onClick={() => setActiveNav('submission')}
-          className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors flex flex-col justify-between cursor-pointer"
+          className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs hover:border-[#315EAA] transition-colors flex flex-col justify-between cursor-pointer"
         >
           <span className="text-[10px] font-bold font-mono text-slate-500 uppercase tracking-wider">
-            Submissions
-          </span>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-xl font-bold font-mono text-slate-900 tabular-nums">
-              {relevantSubmissions.length}
-            </span>
-            <FileCheck className="w-4 h-4 text-blue-500" />
-          </div>
-          <span className="text-[10px] text-slate-400 mt-1">Batches ingested</span>
-        </div>
-
-        {/* 3. Enrolment Records */}
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
-          <span className="text-[10px] font-bold font-mono text-slate-500 uppercase tracking-wider">
-            Enrolment Records
+            Total Enrolments
           </span>
           <div className="mt-1 flex items-baseline justify-between">
             <span className="text-xl font-bold font-mono text-slate-900 tabular-nums">{totalRows}</span>
-            <Users className="w-4 h-4 text-slate-400" />
+            <Users className="w-4 h-4 text-[#315EAA]" />
           </div>
-          <span className="text-[10px] text-slate-400 mt-1">Student roster</span>
+          <span className="text-[10px] text-slate-400 mt-1 font-mono">{relevantSubmissions.length} batches</span>
         </div>
 
-        {/* 4. Accepted Records */}
+        {/* 3. Validated Records */}
         <div className="bg-white p-3 rounded-lg border border-teal-200/90 bg-teal-50/20 shadow-2xs flex flex-col justify-between">
-          <span className="text-[10px] font-bold font-mono text-teal-800 uppercase tracking-wider">
-            Accepted
+          <span className="text-[10px] font-bold font-mono text-[#168C83] uppercase tracking-wider">
+            Validated
           </span>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-xl font-bold font-mono text-teal-800 tabular-nums">{acceptedRows}</span>
-            <CheckCircle className="w-4 h-4 text-teal-600" />
+            <span className="text-xl font-bold font-mono text-[#168C83] tabular-nums">{acceptedRows}</span>
+            <CheckCircle className="w-4 h-4 text-[#168C83]" />
           </div>
-          <span className="text-[10px] text-teal-700 mt-1 font-medium">
-            {totalRows > 0 ? `${Math.round((acceptedRows / totalRows) * 100)}% compliant` : '0%'}
+          <span className="text-[10px] text-[#168C83] mt-1 font-medium font-mono">
+            {totalRows > 0 ? `${Math.round((acceptedRows / totalRows) * 100)}% certified` : '0%'}
           </span>
         </div>
 
-        {/* 5. Flagged Records */}
+        {/* 4. Flagged Records */}
         <div className="bg-white p-3 rounded-lg border border-amber-200/90 bg-amber-50/20 shadow-2xs flex flex-col justify-between">
-          <span className="text-[10px] font-bold font-mono text-amber-800 uppercase tracking-wider">
+          <span className="text-[10px] font-bold font-mono text-[#D99032] uppercase tracking-wider">
             Flagged
           </span>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-xl font-bold font-mono text-amber-800 tabular-nums">{flaggedRows}</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span className="text-xl font-bold font-mono text-[#D99032] tabular-nums">{flaggedRows}</span>
+            <AlertTriangle className="w-4 h-4 text-[#D99032]" />
           </div>
-          <span className="text-[10px] text-amber-700 mt-1 font-medium">Review required</span>
+          <span className="text-[10px] text-[#D99032] mt-1 font-medium font-mono">Warnings logged</span>
         </div>
 
-        {/* 6. Rejected Records */}
+        {/* 5. Rejected Records */}
         <div className="bg-white p-3 rounded-lg border border-red-200/90 bg-red-50/20 shadow-2xs flex flex-col justify-between">
-          <span className="text-[10px] font-bold font-mono text-red-800 uppercase tracking-wider">
+          <span className="text-[10px] font-bold font-mono text-[#C94C4C] uppercase tracking-wider">
             Rejected
           </span>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-xl font-bold font-mono text-red-800 tabular-nums">{rejectedRows}</span>
-            <XCircle className="w-4 h-4 text-red-600" />
+            <span className="text-xl font-bold font-mono text-[#C94C4C] tabular-nums">{rejectedRows}</span>
+            <XCircle className="w-4 h-4 text-[#C94C4C]" />
           </div>
-          <span className="text-[10px] text-red-700 mt-1 font-medium">Statutory block</span>
+          <span className="text-[10px] text-[#C94C4C] mt-1 font-medium font-mono">Quality errors</span>
         </div>
 
-        {/* 7. Duplicate Candidates */}
+        {/* 6. Duplicate Candidates */}
         <div
-          onClick={() => setActiveNav('exception-review')}
-          className="bg-white p-3 rounded-lg border border-indigo-200 shadow-2xs flex flex-col justify-between cursor-pointer hover:border-indigo-400 transition-colors"
+          onClick={() => setActiveNav('tper')}
+          className="bg-white p-3 rounded-lg border border-blue-200 shadow-2xs flex flex-col justify-between cursor-pointer hover:border-blue-400 transition-colors"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold font-mono text-indigo-700 uppercase tracking-wider">
+            <span className="text-[10px] font-bold font-mono text-[#315EAA] uppercase tracking-wider">
               Duplicates
             </span>
-            <ArrowUpRight className="w-3 h-3 text-indigo-500" />
+            <ArrowUpRight className="w-3 h-3 text-[#315EAA]" />
           </div>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-xl font-bold font-mono text-indigo-900 tabular-nums">{openDuplicates}</span>
-            <ShieldAlert className="w-4 h-4 text-indigo-600" />
+            <span className="text-xl font-bold font-mono text-[#315EAA] tabular-nums">{duplicateCandidates.length}</span>
+            <GitCompare className="w-4 h-4 text-[#315EAA]" />
           </div>
-          <span className="text-[10px] text-indigo-600/80 mt-1">Pending review</span>
+          <span className="text-[10px] text-slate-400 mt-1 font-mono">Cross-campus</span>
         </div>
 
-        {/* 8. Intake Exceptions */}
+        {/* 7. Intake Exceptions */}
         <div
-          onClick={() => setActiveNav('aicte-monitoring')}
+          onClick={() => setActiveNav('seat-ledger')}
           className={`p-3 rounded-lg border shadow-2xs flex flex-col justify-between cursor-pointer transition-colors ${
             excessProgrammeCount > 0
               ? 'border-red-300 bg-red-50/30 hover:border-red-400'
@@ -521,20 +507,54 @@ export const OverviewView: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold font-mono text-slate-600 uppercase tracking-wider">
-              Intake Exceptions
+            <span
+              className={`text-[10px] font-bold font-mono uppercase tracking-wider ${
+                excessProgrammeCount > 0 ? 'text-[#C94C4C]' : 'text-slate-500'
+              }`}
+            >
+              Intake Breaches
             </span>
-            <ArrowUpRight className="w-3 h-3 text-slate-400" />
+            <ArrowUpRight
+              className={`w-3 h-3 ${excessProgrammeCount > 0 ? 'text-[#C94C4C]' : 'text-slate-400'}`}
+            />
           </div>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className={`text-xl font-bold font-mono tabular-nums ${excessProgrammeCount > 0 ? 'text-red-700' : 'text-slate-800'}`}>
-              {excessProgrammeCount}
+            <span
+              className={`text-xl font-bold font-mono tabular-nums ${
+                excessProgrammeCount > 0 ? 'text-[#C94C4C]' : 'text-slate-900'
+              }`}
+            >
+              {excessProgrammeCount > 0 ? `+${excessProgrammeCount}` : '0'}
             </span>
-            <TrendingUp className={`w-4 h-4 ${excessProgrammeCount > 0 ? 'text-red-600' : 'text-slate-400'}`} />
+            <AlertOctagon
+              className={`w-4 h-4 ${excessProgrammeCount > 0 ? 'text-[#C94C4C]' : 'text-slate-400'}`}
+            />
           </div>
-          <span className={`text-[10px] mt-1 font-medium ${excessProgrammeCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
-            {excessProgrammeCount > 0 ? `${excessProgrammeCount} Regular excess` : 'All compliant'}
+          <span
+            className={`text-[10px] font-mono mt-1 ${
+              excessProgrammeCount > 0 ? 'text-[#C94C4C] font-semibold' : 'text-slate-400'
+            }`}
+          >
+            {excessProgrammeCount > 0 ? 'Northstar CS (+8)' : 'All compliant'}
           </span>
+        </div>
+
+        {/* 8. Pending Human Reviews */}
+        <div
+          onClick={() => setActiveNav('tper')}
+          className="bg-white p-3 rounded-lg border border-amber-200 shadow-2xs flex flex-col justify-between cursor-pointer hover:border-amber-400 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold font-mono text-[#D99032] uppercase tracking-wider">
+              Pending Reviews
+            </span>
+            <ArrowUpRight className="w-3 h-3 text-[#D99032]" />
+          </div>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-xl font-bold font-mono text-[#D99032] tabular-nums">{openDuplicates}</span>
+            <Clock className="w-4 h-4 text-[#D99032]" />
+          </div>
+          <span className="text-[10px] text-[#D99032] mt-1 font-mono">Requires decision</span>
         </div>
       </div>
 
