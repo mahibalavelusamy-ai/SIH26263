@@ -174,8 +174,22 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Try loading state from localStorage or seed
   const [role, setRoleState] = useState<Role>('AICTE_REVIEWER');
-  const [activeNav, setActiveNav] = useState<string>('overview');
-  const [showEntryPortal, setShowEntryPortal] = useState<boolean>(true);
+  const [activeNav, setActiveNav] = useState<string>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('nav') || 'overview';
+    } catch {
+      return 'overview';
+    }
+  });
+  const [showEntryPortal, setShowEntryPortal] = useState<boolean>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('portal') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [selectedInstitutionId, setSelectedInstitutionId] = useState<string>('INST-001');
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2026-27');
 

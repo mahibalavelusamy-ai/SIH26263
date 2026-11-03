@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp, ROLE_DESCRIPTIONS } from '../../context/AppContext';
 import {
   LayoutDashboard,
@@ -17,6 +17,9 @@ import {
   ChevronRight,
   Shield,
   ExternalLink,
+  ChevronLeft,
+  Menu,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface NavItem {
@@ -25,7 +28,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: number | string;
   badgeColor?: string;
-  category: 'CORE' | 'GOVERNANCE' | 'SYSTEM';
+  category: 'OPERATIONS' | 'INTELLIGENCE' | 'GOVERNANCE' | 'SYSTEM';
 }
 
 export const Sidebar: React.FC = () => {
@@ -33,12 +36,13 @@ export const Sidebar: React.FC = () => {
     activeNav,
     setActiveNav,
     duplicateCandidates,
-    submissions,
     intakeLimits,
     records,
     role,
     setShowEntryPortal,
   } = useApp();
+
+  const [collapsed, setCollapsed] = useState<boolean>(false);
 
   const openDuplicates = duplicateCandidates.filter((c) => c.status === 'PENDING_REVIEW').length;
 
@@ -60,47 +64,52 @@ export const Sidebar: React.FC = () => {
   });
 
   const navItems: NavItem[] = [
+    // OPERATIONS
     {
       id: 'overview',
-      label: 'Overview',
+      label: 'Executive Overview',
       icon: LayoutDashboard,
-      category: 'CORE',
+      category: 'OPERATIONS',
     },
     {
       id: 'institutions',
-      label: 'Institutions',
+      label: 'Campuses Dossier',
       icon: Building2,
-      category: 'CORE',
+      category: 'OPERATIONS',
     },
     {
       id: 'submission',
-      label: 'Submission Centre',
+      label: 'Submission Ingestion',
       icon: UploadCloud,
-      category: 'CORE',
+      category: 'OPERATIONS',
     },
+
+    // INTELLIGENCE & RECONCILIATION
     {
       id: 'identity-intelligence',
       label: 'Identity Intelligence',
       icon: Fingerprint,
-      category: 'CORE',
+      category: 'INTELLIGENCE',
     },
     {
       id: 'tper',
       label: 'TPER Reconciliation',
       icon: GitCompare,
       badge: openDuplicates > 0 ? openDuplicates : undefined,
-      badgeColor: 'bg-[#315EAA]/20 text-blue-300 border border-[#315EAA]/40',
-      category: 'CORE',
+      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+      category: 'INTELLIGENCE',
     },
     {
       id: 'mobility-graph',
-      label: 'Academic Mobility Graph',
+      label: 'Mobility Graph',
       icon: GitFork,
-      category: 'CORE',
+      category: 'INTELLIGENCE',
     },
+
+    // GOVERNANCE & STATUTORY OVERSIGHT
     {
       id: 'seat-ledger',
-      label: 'Programme-wise Seat Ledger',
+      label: 'Statutory Seat Ledger',
       icon: BarChart3,
       badge: intakeExcessCount > 0 ? `${intakeExcessCount} Breaches` : undefined,
       badgeColor: 'bg-rose-950/80 text-rose-300 border border-rose-700/60',
@@ -114,65 +123,70 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'verification',
-      label: 'Verification Centre',
+      label: 'Verification Terminal',
       icon: CheckCircle2,
       category: 'GOVERNANCE',
     },
     {
       id: 'record-dna',
-      label: 'Record DNA',
+      label: 'Record DNA Lineage',
       icon: Dna,
       category: 'GOVERNANCE',
     },
+
+    // SYSTEM & AUDIT
     {
       id: 'cybershield',
-      label: 'CyberShield',
+      label: 'CyberShield Posture',
       icon: ShieldCheck,
       category: 'SYSTEM',
     },
     {
       id: 'reports',
-      label: 'Reports',
+      label: 'Statutory Reports',
       icon: FileSpreadsheet,
       category: 'SYSTEM',
     },
     {
       id: 'administration',
-      label: 'Administration',
+      label: 'Administration & Rules',
       icon: Sliders,
       category: 'SYSTEM',
     },
   ];
 
   const categories = [
-    { key: 'CORE', title: 'Intelligence & Operations' },
-    { key: 'GOVERNANCE', title: 'Regulatory Oversight' },
-    { key: 'SYSTEM', title: 'Platform Security & Gov' },
+    { key: 'OPERATIONS', title: 'Core Operations' },
+    { key: 'INTELLIGENCE', title: 'Reconciliation' },
+    { key: 'GOVERNANCE', title: 'Statutory Oversight' },
+    { key: 'SYSTEM', title: 'Security & Audit' },
   ];
 
   return (
-    <aside className="w-60 bg-[#101C32] text-slate-300 flex flex-col shrink-0 border-r border-slate-700/60 min-h-[calc(100vh-48px)]">
-      {/* Current Active Role Context Pill & Portal Shortcut */}
-      <div className="p-3 border-b border-slate-700/60 bg-[#0B1324]">
-        <div className="flex items-center justify-between">
-          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-semibold">
-            Simulated Context
-          </span>
-          <button
-            onClick={() => setShowEntryPortal(true)}
-            className="text-[10px] text-blue-400 hover:text-blue-300 font-mono flex items-center gap-0.5 hover:underline cursor-pointer"
-            title="Switch Persona / Portal Sign-In"
-          >
-            <span>Portal Login</span>
-            <ExternalLink className="w-2.5 h-2.5" />
-          </button>
-        </div>
-        <div className="text-xs font-semibold text-white mt-1 truncate tracking-tight">
-          {ROLE_DESCRIPTIONS[role].title}
-        </div>
-        <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 font-sans">
-          {ROLE_DESCRIPTIONS[role].subtitle}
-        </div>
+    <aside
+      className={`bg-[#101C32] text-slate-300 flex flex-col shrink-0 border-r border-slate-700/60 transition-all duration-200 select-none min-h-[calc(100vh-48px)] ${
+        collapsed ? 'w-16' : 'w-56'
+      }`}
+    >
+      {/* Sidebar Header with Context & Collapse Toggle */}
+      <div className="p-2.5 border-b border-slate-700/60 bg-[#0B1324] flex items-center justify-between">
+        {!collapsed && (
+          <div className="min-w-0 pr-2">
+            <div className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-semibold truncate">
+              {ROLE_DESCRIPTIONS[role].title}
+            </div>
+            <div className="text-[10px] text-blue-400 font-mono truncate mt-0.5">
+              Verified Session
+            </div>
+          </div>
+        )}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors mx-auto cursor-pointer"
+          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          {collapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Navigation List grouped by GovTech category */}
@@ -181,44 +195,51 @@ export const Sidebar: React.FC = () => {
           const items = navItems.filter((item) => item.category === cat.key);
           return (
             <div key={cat.key}>
-              <div className="px-2 pb-1 text-[9px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
-                {cat.title}
-              </div>
+              {!collapsed && (
+                <div className="px-2 pb-1 text-[9px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                  {cat.title}
+                </div>
+              )}
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  // Handle aliases e.g. 'institution' -> 'institutions', 'aicte-monitoring' -> 'seat-ledger'
                   const isActive =
                     activeNav === item.id ||
                     (item.id === 'institutions' && activeNav === 'institution') ||
                     (item.id === 'seat-ledger' && activeNav === 'aicte-monitoring') ||
+                    (item.id === 'tper' && activeNav === 'exception-review') ||
                     (item.id === 'administration' && ['rules', 'architecture', 'audit-trail', 'test-bench', 'settings'].includes(activeNav));
 
                   return (
                     <li key={item.id}>
                       <button
                         onClick={() => setActiveNav(item.id)}
-                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                        className={`w-full flex items-center ${
+                          collapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
+                        } rounded-lg text-xs font-medium transition-colors cursor-pointer group ${
                           isActive
-                            ? 'bg-slate-800/90 text-white font-semibold shadow-2xs border-l-2 border-[#315EAA]'
-                            : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
+                            ? 'bg-[#315EAA]/25 text-white font-semibold border-l-2 border-[#315EAA] shadow-2xs'
+                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100'
                         }`}
+                        title={collapsed ? item.label : undefined}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#315EAA]' : 'text-slate-400'}`} />
-                          <span className="truncate tracking-tight">{item.label}</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#315EAA]' : 'text-slate-400 group-hover:text-slate-200'}`} />
+                          {!collapsed && <span className="truncate tracking-tight">{item.label}</span>}
                         </div>
-                        {item.badge ? (
+
+                        {!collapsed && item.badge && (
                           <span
-                            className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${
-                              isActive ? 'bg-[#315EAA]/40 text-blue-100 border-[#315EAA]/80' : item.badgeColor
+                            className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                              isActive ? 'bg-[#315EAA]/50 text-blue-100 border-[#315EAA]' : item.badgeColor
                             }`}
                           >
                             {item.badge}
                           </span>
-                        ) : isActive ? (
-                          <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
-                        ) : null}
+                        )}
+                        {collapsed && item.badge && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 right-1" />
+                        )}
                       </button>
                     </li>
                   );
@@ -230,15 +251,12 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Subtitle & Version Footer */}
-      <div className="p-2.5 border-t border-slate-700/60 text-[10px] text-slate-400 bg-[#0B1324] font-mono">
-        <div className="flex items-center justify-between">
-          <span className="text-slate-400">SPEC: AICTE-TPER</span>
+      {!collapsed && (
+        <div className="p-2.5 border-t border-slate-700/60 text-[10px] text-slate-400 bg-[#0B1324] font-mono flex items-center justify-between">
+          <span className="text-slate-400">AICTE-TPER</span>
           <span className="text-blue-400 font-semibold">v1.2.0</span>
         </div>
-        <div className="text-[9px] text-slate-400 truncate mt-0.5">
-          SIH26263 Enterprise Sandbox
-        </div>
-      </div>
+      )}
     </aside>
   );
 };

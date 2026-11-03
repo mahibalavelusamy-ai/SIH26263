@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import { useApp, ROLE_DESCRIPTIONS } from '../../context/AppContext';
 import { Role } from '../../types';
-import { RotateCcw, AlertTriangle, UserCheck, Shield, ChevronRight } from 'lucide-react';
+import {
+  RotateCcw,
+  AlertTriangle,
+  UserCheck,
+  Shield,
+  ChevronRight,
+  Search,
+  Bell,
+  Command,
+} from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { CommandPalette } from './CommandPalette';
+import { NotificationCenter } from './NotificationCenter';
 
 export const Navbar: React.FC = () => {
   const {
@@ -12,13 +23,33 @@ export const Navbar: React.FC = () => {
     setActiveNav,
     resetDemoData,
     duplicateCandidates,
-    submissions,
+    intakeLimits,
+    records,
     setShowEntryPortal,
   } = useApp();
 
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [showCommandPalette, setShowCommandPalette] = useState<boolean>(false);
+  const [showNotificationCenter, setShowNotificationCenter] = useState<boolean>(false);
 
   const openDuplicates = duplicateCandidates.filter((c) => c.status === 'PENDING_REVIEW').length;
+
+  // Calculate quota breaches
+  let breachCount = 0;
+  intakeLimits.forEach((l) => {
+    const regularEnrolments = records.filter(
+      (r) =>
+        r.institutionId === l.institutionId &&
+        r.programmeCode === l.programmeCode &&
+        r.academicYear === l.academicYear &&
+        !r.supernumeraryFlag &&
+        r.enrolmentStatus === 'ACTIVE' &&
+        r.rowOutcome !== 'REJECTED'
+    );
+    if (regularEnrolments.length > l.approvedRegularIntake) breachCount++;
+  });
+
+  const totalActionCount = openDuplicates + breachCount;
 
   const roles: Role[] = [
     'INSTITUTION_SUBMITTER',
@@ -37,6 +68,7 @@ export const Navbar: React.FC = () => {
       case 'submission': return 'Submission Centre';
       case 'identity-intelligence': return 'Identity Intelligence';
       case 'tper': return 'TPER Reconciliation Engine';
+      case 'exception-review': return 'Exception Review & Adjudication';
       case 'mobility-graph': return 'Academic Mobility Graph';
       case 'seat-ledger':
       case 'aicte-monitoring': return 'Programme-wise Seat Ledger';
@@ -68,41 +100,74 @@ export const Navbar: React.FC = () => {
 
         {/* Top Bar Contract */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between gap-4">
-          {/* Zone 1: Brand Wordmark */}
-          <div
-            className="flex items-center gap-2.5 shrink-0 cursor-pointer group"
-            onClick={() => setActiveNav('overview')}
-            title="IDVERA Dashboard Home"
-          >
-            <img
-              src="/logo.png"
-              alt="IDVERA"
-              className="h-7 w-auto object-contain rounded transition-transform group-hover:scale-[1.02]"
-            />
-            <div className="hidden sm:flex flex-col border-l border-slate-800 pl-2.5">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-semibold leading-none">
-                IDVERA
+          {/* Zone 1: Brand Wordmark & Navigable Breadcrumb */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div
+              className="flex items-center gap-2.5 cursor-pointer group"
+              onClick={() => setActiveNav('overview')}
+              title="IDVERA Dashboard Home"
+            >
+              <img
+                src="/logo.png"
+                alt="IDVERA"
+                className="h-7 w-auto object-contain rounded transition-transform group-hover:scale-[1.02]"
+              />
+              <div className="hidden sm:flex flex-col border-l border-slate-700/80 pl-2.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-semibold leading-none">
+                  IDVERA
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono leading-tight mt-0.5">
+                  AICTE APH Gateway
+                </span>
+              </div>
+            </div>
+
+            {/* Contextual Navigation Breadcrumb */}
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap overflow-hidden pl-2">
+              <span
+                onClick={() => setActiveNav('overview')}
+                className="text-slate-400 hover:text-white cursor-pointer transition-colors"
+              >
+                Portal
               </span>
-              <span className="text-[9px] text-slate-500 font-mono leading-tight mt-0.5">
-                AICTE APH Gateway
-              </span>
+              <ChevronRight className="w-3 h-3 text-slate-600" />
+              <span className="font-semibold text-slate-200 tracking-tight">{formatNavTitle(activeNav)}</span>
             </div>
           </div>
 
-          {/* Zone 2: Contextual Navigation Breadcrumb */}
-          <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap overflow-hidden">
-            <span className="text-slate-500">Portal</span>
-            <ChevronRight className="w-3 h-3 text-slate-600" />
-            <span className="font-semibold text-slate-200 tracking-tight">{formatNavTitle(activeNav)}</span>
-            {openDuplicates > 0 && (
-              <span className="ml-2 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                {openDuplicates} Open Candidates
-              </span>
-            )}
+          {/* Zone 2: Universal Search / Command Palette Trigger (Cmd+K) */}
+          <div className="flex-1 max-w-sm hidden sm:block">
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className="w-full flex items-center justify-between px-3 py-1.5 bg-[#0B1324] hover:bg-slate-900 border border-slate-700/70 hover:border-slate-600 rounded-lg text-xs text-slate-400 transition-colors cursor-pointer shadow-2xs group"
+            >
+              <div className="flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-400 transition-colors" />
+                <span className="font-sans">Search students, campuses, commands...</span>
+              </div>
+              <div className="flex items-center gap-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+                <Command className="w-2.5 h-2.5" />
+                <span>K</span>
+              </div>
+            </button>
           </div>
 
-          {/* Zone 3: Demo Role Switcher & Action Controls */}
+          {/* Zone 3: Action Controls, Notifications, Role Switcher */}
           <div className="flex items-center gap-2.5 shrink-0">
+            {/* Action Triage Bell */}
+            <button
+              onClick={() => setShowNotificationCenter(true)}
+              className="relative p-1.5 rounded-lg bg-[#0B1324] hover:bg-slate-800 border border-slate-700/70 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              title="Action-Required Regulatory Triage Desk"
+            >
+              <Bell className="w-4 h-4" />
+              {totalActionCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
+                  {totalActionCount}
+                </span>
+              )}
+            </button>
+
             {/* Simulated Role selector */}
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] uppercase font-mono text-slate-400 hidden lg:inline">
@@ -112,11 +177,11 @@ export const Navbar: React.FC = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as Role)}
-                  className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium rounded border border-slate-700/80 px-2.5 py-1 pr-6 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer appearance-none"
+                  className="bg-[#0B1324] hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium rounded-lg border border-slate-700/80 px-2.5 py-1 pr-6 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer appearance-none shadow-2xs"
                   aria-label="Simulated Role Switcher"
                 >
                   {roles.map((r) => (
-                    <option key={r} value={r} className="bg-slate-900 text-white">
+                    <option key={r} value={r} className="bg-[#101C32] text-white">
                       {ROLE_DESCRIPTIONS[r].title}
                     </option>
                   ))}
@@ -131,7 +196,7 @@ export const Navbar: React.FC = () => {
             <button
               onClick={() => setShowResetConfirm(true)}
               title="Reset Demonstration Seed State"
-              className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition-colors whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-[#0B1324] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
             >
               <RotateCcw className="w-3 h-3 text-slate-400" />
               <span className="hidden sm:inline">Reset</span>
@@ -141,7 +206,7 @@ export const Navbar: React.FC = () => {
             <button
               onClick={() => setShowEntryPortal(true)}
               title="Return to Institutional Entry Portal"
-              className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono font-medium bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 hover:text-white border border-blue-700/60 transition-colors whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-blue-950/70 hover:bg-blue-900 text-blue-300 hover:text-white border border-blue-700/60 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
             >
               <Shield className="w-3 h-3 text-blue-400" />
               <span className="hidden sm:inline">Sign-in Portal</span>
@@ -149,6 +214,18 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Global Command Palette */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+      />
+
+      {/* Action-Required Notification Center Drawer */}
+      <NotificationCenter
+        isOpen={showNotificationCenter}
+        onClose={() => setShowNotificationCenter(false)}
+      />
 
       {/* Confirmation Dialog for Demo Reset */}
       <ConfirmDialog
